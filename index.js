@@ -21,15 +21,20 @@ module.exports = {
                         if (to[0] === 'error') {
                             to = ['error'].concat(point).concat(to.slice(1));
                         }
-                        d.send(to, point.concat(m.from), m.body, m.options);
+                        console.log('child message: ', m);
+                        d.send(to, point.concat(m.from), JSON.parse(m.body), m.options);
                     });
 
                     d.mount(point.concat('::subroute'), function (ctxt) {
-                        n.send({
+                        console.log('parent sending to child ', ctxt);
+                        var msg = {
                             to: ctxt.params.subroute
                             , from: ctxt.from
-                            , body: ctxt.body
-                        });
+                        };
+                        if (ctxt.hasOwnProperty('body')) {
+                            msg.body = JSON.stringify(ctxt.body);
+                        }
+                        n.send(msg);
                     });
                 }
             };
@@ -43,21 +48,28 @@ module.exports = {
     , childDomain: function (d, point, indexRoute) {
         if (_.isFunction(process.send)) {
             process.on('message', function (m) {
+                console.log(' message from parent to parse: ', m);
                 d.send(m.to
-                       , point.concat(m.from));
+                       , point.concat(m.from)
+                       , JSON.parse(m.body)
+                       , m.options);
             });
 
             d.mount(point.concat('::subroute'), function (ctxt) {
+                console.log('message to parent to send ', ctxt);
                 process.send({
                     to: ctxt.params.subroute
                     , from: ctxt.from
+                    , body: JSON.stringify(m.body)
+                    , options: m.options
                 });
             });
             d.mount(['error'], function (ctxt) {
+                console.log('child error ', ctxt);
                 process.send({
                     to: ctxt.to
                     , from: ctxt.from
-                    , body: ctxt.body
+                    , body: JSON.stringify(ctxt.body)
                     , options: ctxt.options
                 });
             });
@@ -65,15 +77,18 @@ module.exports = {
             process.send({
                 to: ['index']
                 , from: []
-                , body: indexRoute
+                , body: JSON.stringify(indexRoute)
                 , options: {}
             });
 
             process.on('uncaughtException', function(err) {
+                console.log('uncaught exception: ', typeof err, err);
+                console.log(err.stack);
+                console.log('stringified uncaught exception: ', JSON.stringify(err));
                 process.send({
                     to: ['error']
                     , from: ['uncaughtException']
-                    , body: err
+                    , body: JSON.stringify(err)
                     , options: {}
                 });
             });
