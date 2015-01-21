@@ -17,11 +17,15 @@ domain.mount({
     }
     , causeException: function (ctxt) {
         throw 'Crazy exception';
+    }    
+    , deepException: function (ctxt) {
+        process.nextTick(function () {
+            throw 'Deep exception';
+        });
     }
     , terminate: function (ctxt) {
         return childDomain.terminate();
     }
 });
 
-console.log('connecting child');
 childDomain(domain, ['parent'], ['stan']);

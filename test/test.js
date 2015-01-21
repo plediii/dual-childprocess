@@ -12,7 +12,6 @@ describe('dual childprocess', function () {
     beforeEach(function (done) {
         d = dualapi();
         childRoute = ['whips'];
-        console.log('starting child', childRoute);
         fork(d, childRoute, childModule)
             .then(function () {
                 done();
@@ -20,44 +19,76 @@ describe('dual childprocess', function () {
     });
 
     afterEach(function () {
-        console.log('terminating client.');
-        
+        // console.log('terminating client.');
     });
 
-    it('should trigger error on parent domain when exceptions', function (done) {
-        d.on(['error'], function () {
-            done();
-        });
-        d.send(childRoute.concat('causeException'));
-    });
+    describe('when child throws exception', function () {
 
-
-    it('should allow sending to child subroutes', function (done) {
-        console.log('going to send to ', childRoute);
-        d.get(childRoute.concat('fouls'), { quelqu: 'un' }, { gold: 'fish' })
-            .then(function (ctxt) {
-                console.log('fouls response: ', ctxt);
+        it('should trigger error on parent domain', function (done) {
+            d.on(['error'], function () {
                 done();
             });
+            d.send(childRoute.concat('causeException'));
+        });
+
+        it('should trigger error with subroute below child point ', function (done) {
+            d.on(['error'].concat(childRoute).concat('**'), function () {
+                done();
+            });
+            d.send(childRoute.concat('causeException'));
+        });
+
+        it('should trigger error with specific subroute from child ', function (done) {
+            d.on(['error'].concat(childRoute).concat('causeException'), function () {
+                done();
+            });
+            d.send(childRoute.concat('causeException'));
+        });
+
+        it('should trigger error on parent domain with original exception body', function (done) {
+            d.on(['error'], function (ctxt) {
+                assert.equal(ctxt.body.message, 'Crazy exception');
+                done();
+            });
+            d.send(childRoute.concat('causeException'));
+        });
+
+        it('should trigger error on parent domain even when not in dual domain', function (done) {
+            d.on(['error'], function () {
+                done();
+            });
+            d.send(childRoute.concat('deepException'));
+        });
+
     });
 
+    describe('sending to child subroute', function () {
 
-    // it('should receive messages from client hosts', function (done) {
-    //     d.get(childRoute.concat('fouls'))
-    //     .then(function (ctxt) {
-    //         done();
-    //     });
-    // });
+        it('should allow sending to child subroutes', function (done) {
+            d.get(childRoute.concat('fouls'), { quelqu: 'un' }, { gold: 'fish' })
+                .then(function (ctxt) {
+                    done();
+                });
+        });
+
+
+        // it('should receive messages from client hosts', function (done) {
+        //     d.get(childRoute.concat('fouls'))
+        //     .then(function (ctxt) {
+        //         done();
+        //     });
+        // });
 
 
 
-    it('should send an error if it fails to boot', function () {
+        it('should send an error if it fails to boot', function () {
+
+        });
+
+        it('should send an error if a host throws exception', function () {
+
+        });
 
     });
-
-    it('should send an error if a host throws exception', function () {
-
-    });
-
 
 });
