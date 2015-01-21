@@ -11,9 +11,18 @@ var domain = dualapi();
 
 domain.mount({
     fouls: function (ctxt) {
+        try {
+        console.log('processing fouls');
         assert.equal(ctxt.body.quelqu, 'un');
+        console.log('body ok');
         assert.equal(ctxt.options.gold, 'fish');
+        console.log('replying...');
         return ctxt.reply({ bagel: 'jelly' }, { mind: 'new' });
+        }
+        catch(err) {
+            console.log('caught ', err);
+            throw err;
+        }
     }
     , causeException: function (ctxt) {
         throw 'Crazy exception';
