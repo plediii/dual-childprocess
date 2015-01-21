@@ -34,6 +34,9 @@ module.exports = {
                 }
             };
             n.on('message', waitForIndex);
+            n.on('exit', function (code) {
+                d.send(['disconnect'].concat(point), point, code);
+            });
         });
 
     }
@@ -79,3 +82,9 @@ module.exports = {
     }
 };
 
+module.exports.childDomain.terminate = function (code) {
+    if (code !== 0) {
+        code = code || 1;
+    }
+    process.exit(code);
+};

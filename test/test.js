@@ -18,8 +18,12 @@ describe('dual childprocess', function () {
             });
     });
 
-    afterEach(function () {
-        // console.log('terminating client.');
+    afterEach(function (done) {
+        d.mount(['disconnect'].concat(childRoute), function (ctxt) {
+            assert.equal(0, ctxt.body);
+            done();
+        });
+        d.send(childRoute.concat('terminate'));
     });
 
     describe('when child throws exception', function () {

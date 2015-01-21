@@ -24,7 +24,7 @@ domain.mount({
         });
     }
     , terminate: function (ctxt) {
-        return childDomain.terminate();
+        return childDomain.terminate(0);
     }
 });
 
