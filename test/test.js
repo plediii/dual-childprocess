@@ -66,35 +66,33 @@ describe('dual childprocess', function () {
 
     });
 
-    describe('sending to child subroute', function () {
+    describe('messages to children', function () {
 
-        it('should allow sending to child subroutes', function (done) {
+        it('should give expected behavior', function (done) {
             d.get(childRoute.concat('fouls'), { quelqu: 'un' }, { gold: 'fish' })
                 .then(function (ctxt) {
                     done();
                 });
             d.mount(['error'], function (ctxt) {
-                console.log(ctxt.body);
                 done(ctxt.to.join('/') + ' -> ' + JSON.stringify(ctxt.body));
             });
         });
 
+    });
 
-        // it('should receive messages from client hosts', function (done) {
-        //     d.get(childRoute.concat('fouls'))
-        //     .then(function (ctxt) {
-        //         done();
-        //     });
-        // });
+    describe('messages to parent', function () {
 
-
-
-        it('should send an error if it fails to boot', function () {
-
-        });
-
-        it('should send an error if a host throws exception', function () {
-
+        it('should give expected behavior', function (done) {
+            d.mount(['talker'], function (ctxt) {
+                ctxt.reply({ prove: 'innocence' }, { reverence: 'constitution' });
+            });
+            d.get(childRoute.concat('talkToMe'))
+            .then(function () {
+                done();
+            });
+            d.mount(['error'], function (ctxt) {
+                done(ctxt.to.join('/') + ' -> ' + JSON.stringify(ctxt.body));
+            });
         });
 
     });

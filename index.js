@@ -18,7 +18,12 @@ module.exports = {
                         if (to[0] === 'error') {
                             to = ['error'].concat(point).concat(to.slice(1));
                         }
-                        d.send(to, point.concat(m.from), JSON.parse(m.body), m.options);
+                        var body = void 0;
+                        var bodyStr = m.body;
+                        if (_.isString(bodyStr)) {
+                            body = JSON.parse(bodyStr);
+                        }
+                        d.send(to, point.concat(m.from), body, m.options);
                     });
 
                     d.mount(point.concat('::subroute'), function (ctxt) {
@@ -59,35 +64,36 @@ module.exports = {
             });
 
             d.mount(point.concat('::subroute'), function (ctxt) {
-                process.send({
+                var msg = {
                     to: ctxt.params.subroute
                     , from: ctxt.from
-                    , body: JSON.stringify(ctxt.body)
                     , options: ctxt.options
-                });
+                };
+                if (ctxt.hasOwnProperty('body')) {
+                    msg.body = JSON.stringify(ctxt.body);
+                }
+                process.send(msg);
             });
 
             d.mount(['error'], function (ctxt) {
-                var msg = ctxt.body.message;
+                var errmsg = ctxt.body.message;
                 var body = ctxt.body;
-                if (msg instanceof Error) {
-                    body.message = msg.stack;
+                if (errmsg instanceof Error) {
+                    body.message = errmsg.stack;
                 }
-                process.send({
+                var msg = {
                     to: ctxt.to
                     , from: ctxt.from
-                    , body: JSON.stringify(ctxt.body)
                     , options: ctxt.options
-                });
+                }
+                if (ctxt.hasOwnProperty('body')) {
+                    msg.body = JSON.stringify(ctxt.body);
+                }
+                process.send(msg);
             });
             
             process.on('uncaughtException', function(err) {
-                process.send({
-                    to: ['error']
-                    , from: ['uncaughtException']
-                    , body: JSON.stringify(err)
-                    , options: {}
-                });
+                d.send(['error'], ['uncaughtException'], err);
             });
 
             process.send({
