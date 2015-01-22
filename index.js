@@ -1,7 +1,6 @@
 /*jslint node: true */
 "use strict";
 
-var dualapi = require('dualapi');
 var Promise = require('bluebird');
 var cp = require('child_process');
 var _ = require('lodash');
