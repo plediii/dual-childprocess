@@ -11,11 +11,8 @@ module.exports = {
         return new Promise(function (resolve, reject) {
             var n = cp.fork(modulePath);
             
-            var waitForIndex = function (m) {
-                if (_.isEqual(m.to, ['index'])) {
-                    n.removeListener('message', waitForIndex);
-                    resolve();
-
+            var waitForIndex = function (indexMsg) {
+                if (_.isEqual(indexMsg.to, ['index'])) {
                     n.on('message', function(m) {
                         var to = m.to;
                         if (to[0] === 'error') {
@@ -28,12 +25,16 @@ module.exports = {
                         var msg = {
                             to: ctxt.params.subroute
                             , from: ctxt.from
+                            , options: ctxt.options
                         };
                         if (ctxt.hasOwnProperty('body')) {
                             msg.body = JSON.stringify(ctxt.body);
                         }
                         n.send(msg);
                     });
+
+                    n.removeListener('message', waitForIndex);
+                    resolve();
                 }
             };
             n.on('message', waitForIndex);
@@ -61,11 +62,17 @@ module.exports = {
                 process.send({
                     to: ctxt.params.subroute
                     , from: ctxt.from
-                    , body: JSON.stringify(m.body)
-                    , options: m.options
+                    , body: JSON.stringify(ctxt.body)
+                    , options: ctxt.options
                 });
             });
+
             d.mount(['error'], function (ctxt) {
+                var msg = ctxt.body.message;
+                var body = ctxt.body;
+                if (msg instanceof Error) {
+                    body.message = msg.stack;
+                }
                 process.send({
                     to: ctxt.to
                     , from: ctxt.from
@@ -74,13 +81,6 @@ module.exports = {
                 });
             });
             
-            process.send({
-                to: ['index']
-                , from: []
-                , body: JSON.stringify(indexRoute)
-                , options: {}
-            });
-
             process.on('uncaughtException', function(err) {
                 process.send({
                     to: ['error']
@@ -90,6 +90,12 @@ module.exports = {
                 });
             });
 
+            process.send({
+                to: ['index']
+                , from: []
+                , body: JSON.stringify(indexRoute)
+                , options: {}
+            });
         }
     }
 };

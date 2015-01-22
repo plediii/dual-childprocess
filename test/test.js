@@ -30,7 +30,6 @@ describe('dual childprocess', function () {
 
         it('should trigger error on parent domain', function (done) {
             d.on(['error'], function (ctxt) {
-                console.log('received error: ', ctxt);
                 done();
             });
             d.send(childRoute.concat('causeException'));
@@ -75,7 +74,8 @@ describe('dual childprocess', function () {
                     done();
                 });
             d.mount(['error'], function (ctxt) {
-                done(ctxt.to.join('/') + ' -> ' + JSON.stringify(ctxt.body.message));
+                console.log(ctxt.body);
+                done(ctxt.to.join('/') + ' -> ' + JSON.stringify(ctxt.body));
             });
         });
 
