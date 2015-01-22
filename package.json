@@ -1,6 +1,6 @@
 {
   "name": "dual-childprocess",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Child process clients for dualapi",
   "main": "index.js",
   "private": false,
