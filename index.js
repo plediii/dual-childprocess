@@ -1,4 +1,5 @@
 /*jslint node: true */
+/* global -Promise */
 "use strict";
 
 var Promise = require('bluebird');
@@ -54,7 +55,7 @@ module.exports = {
                 var body = void 0;
                 var bodyStr = m.body;
                 if (_.isString(bodyStr)) {
-                    body = JSON.parse(bodyStr)
+                    body = JSON.parse(bodyStr);
                 }
                 d.send(m.to
                        , point.concat(m.from)
@@ -84,7 +85,7 @@ module.exports = {
                     to: ctxt.to
                     , from: ctxt.from
                     , options: ctxt.options
-                }
+                };
                 if (ctxt.hasOwnProperty('body')) {
                     msg.body = JSON.stringify(ctxt.body);
                 }
